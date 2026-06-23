@@ -3,22 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JARVIS - Stable Cloud HUD</title>
+    <title>JARVIS - Advanced MK-4 HUD</title>
     <style>
         :root {
             --neon-cyan: #00f0ff;
             --neon-blue: #0072ff;
             --neon-red: #ff0055;
-            --neon-dark-red: #990022;
-            --dark-bg: #02050d;
+            --neon-dark-red: #550011;
+            --dark-bg: #030712;
             --theme-color: var(--neon-red);
             --theme-glow: var(--neon-dark-red);
+            --panel-bg: rgba(255, 0, 85, 0.03);
+            --panel-border: rgba(255, 0, 85, 0.2);
+        }
+
+        body.active {
+            --theme-color: var(--neon-cyan);
+            --theme-glow: var(--neon-blue);
+            --panel-bg: rgba(0, 240, 255, 0.02);
+            --panel-border: rgba(0, 240, 255, 0.15);
         }
 
         body {
             background-color: var(--dark-bg);
             color: var(--theme-color);
-            font-family: 'Segoe UI', Roboto, sans-serif;
+            font-family: 'Courier New', Courier, monospace;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -26,14 +35,13 @@
             height: 100vh;
             margin: 0;
             overflow: hidden;
-            transition: color 0.5s ease, background-image 0.5s ease;
-            background-image: radial-gradient(circle at 50% 50%, rgba(255, 0, 85, 0.05) 0%, transparent 70%);
-        }
-
-        body.active {
-            --theme-color: var(--neon-cyan);
-            --theme-glow: var(--neon-blue);
-            background-image: radial-gradient(circle at 50% 50%, rgba(0, 114, 255, 0.1) 0%, transparent 70%);
+            transition: all 0.5s ease;
+            /* רקע רשת הולוגרמה עתידני */
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.01) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.01) 1px, transparent 1px),
+                radial-gradient(circle at 50% 50%, var(--panel-bg) 0%, transparent 80%);
+            background-size: 30px 30px, 30px 30px, 100% 100%;
         }
 
         #boot-screen {
@@ -42,10 +50,10 @@
             background: var(--dark-bg);
             width: 100%;
             height: 100%;
-            z-index: 10;
+            z-index: 100;
             justify-content: center;
             align-items: center;
-            transition: opacity 0.8s ease;
+            transition: opacity 0.6s ease;
         }
 
         .boot-btn {
@@ -55,140 +63,205 @@
             padding: 20px 40px;
             font-size: 18px;
             font-weight: bold;
-            letter-spacing: 3px;
             cursor: pointer;
-            box-shadow: 0 0 15px var(--theme-glow);
+            box-shadow: 0 0 20px var(--theme-glow);
             text-shadow: 0 0 5px var(--theme-color);
-            transition: all 0.3s ease;
+            letter-spacing: 3px;
         }
 
         #hud-container {
             display: none;
             flex-direction: column;
             align-items: center;
-            width: 100%;
-            max-width: 800px;
+            width: 90%;
+            max-width: 1000px;
+            height: 90vh;
+            justify-content: space-between;
+            padding: 20px 0;
+            box-sizing: border-box;
         }
 
+        /* סרגל עליון טכנולוגי */
+        .hud-header {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px dashed var(--panel-border);
+            padding-bottom: 10px;
+            font-size: 12px;
+            letter-spacing: 2px;
+        }
+
+        .arc-zone {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-grow: 1;
+        }
+
+        /* כור ארק משודרג - 3 טבעות */
         .arc-reactor {
             position: relative;
-            width: 220px;
-            height: 220px;
+            width: 240px;
+            height: 240px;
             border-radius: 50%;
-            border: 4px dashed var(--theme-color);
+            border: 2px dashed var(--theme-color);
             display: flex;
             align-items: center;
             justify-content: center;
-            animation: rotate 25s linear infinite;
-            box-shadow: 0 0 30px var(--theme-glow);
-            margin-bottom: 40px;
-            transition: border-color 0.5s ease, box-shadow 0.5s ease;
+            animation: rotate 30s linear infinite;
+            box-shadow: 0 0 40px var(--theme-glow);
+        }
+
+        .arc-mid {
+            width: 190px;
+            height: 190px;
+            border-radius: 50%;
+            border: 3px dotted var(--theme-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: rotateReverse 15s linear infinite;
         }
 
         .arc-inner {
-            width: 160px;
-            height: 160px;
+            width: 140px;
+            height: 140px;
             border-radius: 50%;
-            border: 3px solid var(--theme-color);
+            border: 2px solid var(--theme-color);
             display: flex;
             align-items: center;
             justify-content: center;
-            animation: rotateReverse 12s linear infinite;
-            transition: border-color 0.5s ease;
+            animation: rotate 8s linear infinite;
         }
 
         .arc-core {
-            width: 80px;
-            height: 80px;
+            width: 70px;
+            height: 70px;
             border-radius: 50%;
-            background: radial-gradient(circle, #fff 0%, var(--theme-color) 60%, var(--theme-glow) 100%);
-            box-shadow: 0 0 30px var(--theme-color);
-            animation: pulse 2s infinite ease-in-out;
-            transition: background 0.5s ease, box-shadow 0.5s ease;
+            background: radial-gradient(circle, #fff 10%, var(--theme-color) 60%, var(--theme-glow) 100%);
+            box-shadow: 0 0 35px var(--theme-color);
+            animation: pulse 1.5s infinite ease-in-out;
         }
 
-        h1 {
-            font-size: 32px;
-            letter-spacing: 6px;
-            text-shadow: 0 0 10px var(--theme-color);
-            margin: 0 0 10px 0;
-        }
-
-        #status {
-            font-size: 14px;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            margin-bottom: 30px;
-            font-weight: bold;
-        }
-
-        #console-log {
-            width: 80%;
-            height: 120px;
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid var(--theme-color);
-            padding: 15px;
-            border-radius: 5px;
-            font-family: 'Courier New', monospace;
-            font-size: 16px;
-            color: #fff;
+        /* פאנל כתוביות דיבור של ג'ארוויס */
+        .subtitle-panel {
+            width: 100%;
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 6px;
+            padding: 20px;
+            box-sizing: border-box;
             text-align: center;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            text-shadow: 0 0 8px var(--theme-color);
+            box-shadow: 0 0 15px rgba(0,0,0,0.5);
+            margin-bottom: 15px;
+        }
+
+        /* מסוף לוגים נפרד - לא נדרס לעולם */
+        .diagnostics-terminal {
+            width: 100%;
+            height: 110px;
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px rgba(255, 255, 255, 0.05) solid;
+            border-top: 2px solid var(--theme-color);
+            padding: 10px 15px;
+            box-sizing: border-box;
+            font-size: 13px;
             overflow-y: auto;
-            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+            color: #a0aec0;
+            text-align: left;
+        }
+
+        .log-entry {
+            margin-bottom: 4px;
+            line-height: 1.4;
         }
 
         .config-btn {
-            margin-top: 15px;
             background: transparent;
-            color: #666;
-            border: 1px solid #446;
+            color: #4a5568;
+            border: 1px solid #2d3748;
             cursor: pointer;
-            padding: 5px 10px;
+            padding: 6px 12px;
             font-size: 11px;
-            border-radius: 3px;
+            margin-top: 10px;
+            font-family: monospace;
+            transition: all 0.3s;
+        }
+
+        .config-btn:hover {
+            color: #fff;
+            border-color: var(--theme-color);
+            box-shadow: 0 0 8px var(--theme-glow);
         }
 
         @keyframes rotate { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         @keyframes rotateReverse { 0% { transform: rotate(360deg); } 100% { transform: rotate(0deg); } }
         @keyframes pulse {
-            0% { transform: scale(0.95); opacity: 0.8; }
-            50% { transform: scale(1.05); opacity: 1; box-shadow: 0 0 40px var(--theme-color); }
-            100% { transform: scale(0.95); opacity: 0.8; }
+            0% { transform: scale(0.92); opacity: 0.7; }
+            50% { transform: scale(1.08); opacity: 1; box-shadow: 0 0 45px var(--theme-color); }
+            100% { transform: scale(0.92); opacity: 0.7; }
         }
     </style>
 </head>
 <body>
 
     <div id="boot-screen">
-        <button class="boot-btn" id="init-btn">INITIALIZE CLOUD SYSTEM</button>
+        <button class="boot-btn" id="init-btn">INITIALIZE CORE HUD v4.0</button>
     </div>
 
     <div id="hud-container">
-        <h1 id="title">SYSTEM DORMANT</h1>
-        <div id="status">MODE: STANDBY</div>
+        <div class="hud-header">
+            <div>SYS_STATUS: <span id="hud-status-text">STANDBY</span></div>
+            <div id="hud-title">JARVIS: DORMANT</div>
+            <div>CORE_TMP: 38°C</div>
+        </div>
         
-        <div class="arc-reactor">
-            <div class="arc-inner">
-                <div class="arc-core"></div>
+        <div class="arc-zone">
+            <div class="arc-reactor">
+                <div class="arc-mid">
+                    <div class="arc-inner">
+                        <div class="arc-core"></div>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <div id="console-log">Say "Jarvis, wake up" to initialize control...</div>
-        <button class="config-btn" id="key-btn">Set Gemini API Key</button>
+        <!-- תיבת כתוביות (מה שג'ארוויס אומר כרגע בקול) -->
+        <div class="subtitle-panel" id="jarvis-speech">
+            System encrypted. Awaiting biometric pulse...
+        </div>
+
+        <!-- מסוף דיאגנוסטיקה (שומר שגיאות ולוגים בצורה מאובטחת) -->
+        <div class="diagnostics-terminal" id="system-terminal">
+            <div class="log-entry" style="color: #666;">[SYSTEM] Ready for initialization protocols.</div>
+        </div>
+
+        <button class="config-btn" id="key-btn">RE-CONFIG SECURITY KEY (API)</button>
     </div>
 
     <script>
         const initBtn = document.getElementById('init-btn');
         const bootScreen = document.getElementById('boot-screen');
         const hudContainer = document.getElementById('hud-container');
-        const statusDiv = document.getElementById('status');
-        const consoleLog = document.getElementById('console-log');
-        const titleH1 = document.getElementById('title');
+        const statusText = document.getElementById('hud-status-text');
+        const titleText = document.getElementById('hud-title');
+        const speechPanel = document.getElementById('jarvis-speech');
+        const terminal = document.getElementById('system-terminal');
         const keyBtn = document.getElementById('key-btn');
 
         let recognition;
         let isAsleep = true;
-        let explicitStop = false; // דגל קריטי שמונע מג'ארוויס להקשיב לעצמו
+        let explicitStop = false; 
         let geminiKey = localStorage.getItem('gemini_api_key') || "";
 
         initBtn.addEventListener('click', () => {
@@ -196,30 +269,46 @@
             setTimeout(() => {
                 bootScreen.style.display = 'none';
                 hudContainer.style.display = 'flex';
+                logToTerminal("SYSTEM", "Mainframe visual layer loaded.", "cyan");
                 checkApiKey();
                 startVoiceEngine();
-            }, 800);
+            }, 600);
         });
 
         keyBtn.addEventListener('click', () => {
-            let key = prompt("Please enter your Gemini API Key:");
+            let key = prompt("Enter Gemini API Key:");
             if(key) {
                 localStorage.setItem('gemini_api_key', key);
                 geminiKey = key;
-                consoleLog.innerHTML = "<span style='color: green;'>[SUCCESS] API Key updated!</span>";
-                alert("API Key saved locally!");
+                logToTerminal("SECURITY", "API Key overwritten securely inside LocalStorage.", "green");
+                speechPanel.innerText = "Key updated, sir.";
             }
         });
 
+        function logToTerminal(sender, message, color = "#a0aec0") {
+            const time = new Date().toLocaleTimeString();
+            const div = document.createElement('div');
+            div.className = 'log-entry';
+            div.innerHTML = `<span style="color: #4a5568">[${time}]</span> <span style="color: ${color}">[${sender}]</span> ${message}`;
+            terminal.appendChild(div);
+            terminal.scrollTop = terminal.scrollHeight; // גלילה אוטומטית למטה
+        }
+
         function checkApiKey() {
             if(!geminiKey) {
-                consoleLog.innerHTML = "<span style='color: var(--neon-red);'>[WARNING] AI Brain offline. Click 'Set Gemini API Key'.</span>";
+                logToTerminal("WARNING", "Gemini API key is completely missing. Core logic offline.", "#ff0055");
+                speechPanel.innerText = "Provide an API key to wake my neural net, sir.";
+            } else {
+                logToTerminal("SYSTEM", "API key localized. Cryptography test ready.", "green");
             }
         }
 
         function startVoiceEngine() {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if (!SpeechRecognition) return;
+            if (!SpeechRecognition) {
+                logToTerminal("ERROR", "Webkit Speech Recognition not allowed/supported.", "red");
+                return;
+            }
 
             recognition = new SpeechRecognition();
             recognition.lang = 'en-US';
@@ -228,25 +317,24 @@
 
             recognition.onresult = (event) => {
                 const transcript = event.results[event.resultIndex][0].transcript.toLowerCase().trim();
-                console.log("Heard:", transcript);
+                logToTerminal("HEARD", `"${transcript}"`, "#cbd5e1");
 
                 if (isAsleep) {
                     if (transcript.includes("jarvis wake up") || transcript.includes("wake up")) {
                         wakeUp();
                     } else {
-                        consoleLog.innerHTML = `<span style='color: var(--neon-red);'>[LOCKED] Say "Jarvis, wake up" to unlock.</span>`;
+                        speechPanel.innerText = "Say 'Jarvis, wake up'...";
                     }
                 } else {
                     if (transcript.includes("go to sleep") || transcript.includes("system sleep")) {
                         goToSleep();
                     } else {
-                        consoleLog.innerHTML = `<span>Command: "${transcript}"</span>`;
+                        speechPanel.innerText = `Processing: "${transcript}"`;
                         processLiveCommand(transcript);
                     }
                 }
             };
 
-            // מפעיל מחדש רק אם לא עצרנו את המיקרופון בכוונה בשביל לדבר
             recognition.onend = () => { 
                 if (!explicitStop) {
                     try { recognition.start(); } catch(e) {}
@@ -258,18 +346,18 @@
         function wakeUp() {
             isAsleep = false;
             document.body.classList.add('active');
-            titleH1.innerText = "JARVIS ONLINE";
-            statusDiv.innerText = "MODE: ACTIVE / AWAITING INSTRUCTIONS";
-            consoleLog.innerHTML = "<span style='color: var(--neon-cyan);'>[SYSTEM] Online and ready, sir.</span>";
+            titleText.innerText = "JARVIS: ONLINE";
+            statusText.innerText = "ACTIVE";
+            logToTerminal("SYS", "Security clearance approved. Systems online.", "var(--neon-cyan)");
             speak("Systems operational. Welcome back, sir.");
         }
 
         function goToSleep() {
             isAsleep = true;
             document.body.classList.remove('active');
-            titleH1.innerText = "SYSTEM DORMANT";
-            statusDiv.innerText = "MODE: STANDBY";
-            consoleLog.innerHTML = "Say 'Jarvis, wake up' to initialize control...";
+            titleText.innerText = "JARVIS: DORMANT";
+            statusText.innerText = "STANDBY";
+            logToTerminal("SYS", "Power grid conservation active. Standby mode.", "var(--neon-red)");
             speak("Understood, entering standby.");
         }
 
@@ -289,12 +377,12 @@
                 return;
             }
 
-            if (geminiKey) { askGeminiAI(command); } else { speak("AI brain key is missing."); }
+            if (geminiKey) { askGeminiAI(command); } else { speak("AI key is missing."); }
         }
 
         function askGeminiAI(promptText) {
-            statusDiv.innerText = "MODE: THINKING...";
-            consoleLog.innerHTML = "[JARVIS] Communicating with neural network...";
+            statusText.innerText = "THINKING";
+            logToTerminal("UPLINK", "Querying Gemini cloud arrays...");
 
             const systemPrompt = "You are J.A.R.V.I.S., the advanced AI from Iron Man. Keep answers short, witty, and always call the user 'sir'. Command: " + promptText;
 
@@ -306,32 +394,34 @@
             .then(res => {
                 if (!res.ok) {
                     return res.json().then(errData => {
-                        throw new Error(errData.error?.message || "API Error");
+                        throw new Error(errData.error?.message || `HTTP ${res.status}`);
                     });
                 }
                 return res.json();
             })
             .then(data => {
+                statusText.innerText = "ACTIVE";
                 if (data.candidates && data.candidates[0]?.content?.parts[0]?.text) {
-                    speak(data.candidates[0].content.parts[0].text);
+                    let textResponse = data.candidates[0].content.parts[0].text;
+                    logToTerminal("AI_CORE", "Uplink success. Telemetry received.", "green");
+                    speak(textResponse);
                 } else {
-                    throw new Error("Invalid response format");
+                    throw new Error("Payload format unreadable.");
                 }
             })
             .catch(err => {
-                console.error(err);
-                // מציג את השגיאה האמיתית על המסך כדי שנדע מה לתקן!
-                consoleLog.innerHTML = `<span style='color: var(--neon-red);'>[AI ERROR] ${err.message}</span>`;
-                speak("Forgive me sir, my core neural network returned an error. Please check the log panel.");
+                statusText.innerText = "ERROR BREAK";
+                // מדפיס את השגיאה האמיתית לגמרי פה באדום בוהק! היא לא תימחק לעולם!
+                logToTerminal("AI_ERROR", err.message, "#ff0055"); 
+                speak("Forgive me sir, my core neural network returned an error. Check the diagnostics terminal.");
             });
         }
 
         function speak(text) {
-            explicitStop = true; // אומר למערכת: "עצרתי את המיקרופון בכוונה, אל תדליקי אותו מיד!"
+            explicitStop = true; 
             if (recognition) try { recognition.stop(); } catch(e) {}
             
-            statusDiv.innerText = "MODE: RESPONDING";
-            consoleLog.innerHTML = `<span style='color: var(--neon-cyan);'>[JARVIS]: ${text}</span>`;
+            speechPanel.innerText = text;
 
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.lang = 'en-US';
@@ -339,8 +429,8 @@
             utterance.pitch = 0.85;
 
             utterance.onend = () => { 
-                statusDiv.innerText = "MODE: ACTIVE / AWAITING INSTRUCTIONS";
-                explicitStop = false; // סיים לדבר, עכשיו אפשר להחזיר את המיקרופון בבטחה
+                if(!isAsleep) statusText.innerText = "ACTIVE";
+                explicitStop = false; 
                 if (recognition) try { recognition.start(); } catch(e) {}
             };
             window.speechSynthesis.speak(utterance);
