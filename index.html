@@ -3,438 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JARVIS - Advanced MK-4 HUD</title>
-    <style>
-        :root {
-            --neon-cyan: #00f0ff;
-            --neon-blue: #0072ff;
-            --neon-red: #ff0055;
-            --neon-dark-red: #550011;
-            --dark-bg: #030712;
-            --theme-color: var(--neon-red);
-            --theme-glow: var(--neon-dark-red);
-            --panel-bg: rgba(255, 0, 85, 0.03);
-            --panel-border: rgba(255, 0, 85, 0.2);
-        }
-
-        body.active {
-            --theme-color: var(--neon-cyan);
-            --theme-glow: var(--neon-blue);
-            --panel-bg: rgba(0, 240, 255, 0.02);
-            --panel-border: rgba(0, 240, 255, 0.15);
-        }
-
-        body {
-            background-color: var(--dark-bg);
-            color: var(--theme-color);
-            font-family: 'Courier New', Courier, monospace;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
-            overflow: hidden;
-            transition: all 0.5s ease;
-            /* רקע רשת הולוגרמה עתידני */
-            background-image: 
-                linear-gradient(rgba(255,255,255,0.01) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255,255,255,0.01) 1px, transparent 1px),
-                radial-gradient(circle at 50% 50%, var(--panel-bg) 0%, transparent 80%);
-            background-size: 30px 30px, 30px 30px, 100% 100%;
-        }
-
-        #boot-screen {
-            position: absolute;
-            display: flex;
-            background: var(--dark-bg);
-            width: 100%;
-            height: 100%;
-            z-index: 100;
-            justify-content: center;
-            align-items: center;
-            transition: opacity 0.6s ease;
-        }
-
-        .boot-btn {
-            background: transparent;
-            color: var(--theme-color);
-            border: 2px solid var(--theme-color);
-            padding: 20px 40px;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 0 20px var(--theme-glow);
-            text-shadow: 0 0 5px var(--theme-color);
-            letter-spacing: 3px;
-        }
-
-        #hud-container {
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            width: 90%;
-            max-width: 1000px;
-            height: 90vh;
-            justify-content: space-between;
-            padding: 20px 0;
-            box-sizing: border-box;
-        }
-
-        /* סרגל עליון טכנולוגי */
-        .hud-header {
-            width: 100%;
-            display: flex;
-            justify-content: space-between;
-            border-bottom: 1px dashed var(--panel-border);
-            padding-bottom: 10px;
-            font-size: 12px;
-            letter-spacing: 2px;
-        }
-
-        .arc-zone {
-            position: relative;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-grow: 1;
-        }
-
-        /* כור ארק משודרג - 3 טבעות */
-        .arc-reactor {
-            position: relative;
-            width: 240px;
-            height: 240px;
-            border-radius: 50%;
-            border: 2px dashed var(--theme-color);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            animation: rotate 30s linear infinite;
-            box-shadow: 0 0 40px var(--theme-glow);
-        }
-
-        .arc-mid {
-            width: 190px;
-            height: 190px;
-            border-radius: 50%;
-            border: 3px dotted var(--theme-color);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            animation: rotateReverse 15s linear infinite;
-        }
-
-        .arc-inner {
-            width: 140px;
-            height: 140px;
-            border-radius: 50%;
-            border: 2px solid var(--theme-color);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            animation: rotate 8s linear infinite;
-        }
-
-        .arc-core {
-            width: 70px;
-            height: 70px;
-            border-radius: 50%;
-            background: radial-gradient(circle, #fff 10%, var(--theme-color) 60%, var(--theme-glow) 100%);
-            box-shadow: 0 0 35px var(--theme-color);
-            animation: pulse 1.5s infinite ease-in-out;
-        }
-
-        /* פאנל כתוביות דיבור של ג'ארוויס */
-        .subtitle-panel {
-            width: 100%;
-            background: var(--panel-bg);
-            border: 1px solid var(--panel-border);
-            border-radius: 6px;
-            padding: 20px;
-            box-sizing: border-box;
-            text-align: center;
-            min-height: 80px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            font-weight: bold;
-            letter-spacing: 1px;
-            text-shadow: 0 0 8px var(--theme-color);
-            box-shadow: 0 0 15px rgba(0,0,0,0.5);
-            margin-bottom: 15px;
-        }
-
-        /* מסוף לוגים נפרד - לא נדרס לעולם */
-        .diagnostics-terminal {
-            width: 100%;
-            height: 110px;
-            background: rgba(0, 0, 0, 0.7);
-            border: 1px rgba(255, 255, 255, 0.05) solid;
-            border-top: 2px solid var(--theme-color);
-            padding: 10px 15px;
-            box-sizing: border-box;
-            font-size: 13px;
-            overflow-y: auto;
-            color: #a0aec0;
-            text-align: left;
-        }
-
-        .log-entry {
-            margin-bottom: 4px;
-            line-height: 1.4;
-        }
-
-        .config-btn {
-            background: transparent;
-            color: #4a5568;
-            border: 1px solid #2d3748;
-            cursor: pointer;
-            padding: 6px 12px;
-            font-size: 11px;
-            margin-top: 10px;
-            font-family: monospace;
-            transition: all 0.3s;
-        }
-
-        .config-btn:hover {
-            color: #fff;
-            border-color: var(--theme-color);
-            box-shadow: 0 0 8px var(--theme-glow);
-        }
-
-        @keyframes rotate { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        @keyframes rotateReverse { 0% { transform: rotate(360deg); } 100% { transform: rotate(0deg); } }
-        @keyframes pulse {
-            0% { transform: scale(0.92); opacity: 0.7; }
-            50% { transform: scale(1.08); opacity: 1; box-shadow: 0 0 45px var(--theme-color); }
-            100% { transform: scale(0.92); opacity: 0.7; }
-        }
-    </style>
+    <title>JARVIS OS - Mainframe</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
+    <!-- מסך טעינה ראשוני -->
     <div id="boot-screen">
-        <button class="boot-btn" id="init-btn">INITIALIZE CORE HUD v4.0</button>
+        <button class="boot-btn" id="init-btn">INITIALIZE MAINFRAME OS</button>
     </div>
 
+    <!-- ממשק ה-HUD הראשי -->
     <div id="hud-container">
         <div class="hud-header">
             <div>SYS_STATUS: <span id="hud-status-text">STANDBY</span></div>
             <div id="hud-title">JARVIS: DORMANT</div>
-            <div>CORE_TMP: 38°C</div>
+            <div id="battery-status">BATTERY: --%</div>
         </div>
         
-        <div class="arc-zone">
-            <div class="arc-reactor">
-                <div class="arc-mid">
-                    <div class="arc-inner">
-                        <div class="arc-core"></div>
+        <div class="main-layout">
+            <!-- פאנל משימות שמאלי חכם -->
+            <div class="side-panel" id="task-panel">
+                <h3>[ACTIVE_DIRECTIVES]</h3>
+                <ul id="task-list">
+                    <li>No pending directives.</li>
+                </ul>
+            </div>
+
+            <!-- כור ארק מרכזי -->
+            <div class="arc-zone">
+                <div class="arc-reactor">
+                    <div class="arc-mid">
+                        <div class="arc-inner">
+                            <div class="arc-core"></div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- תיבת כתוביות (מה שג'ארוויס אומר כרגע בקול) -->
+        <!-- תיבת כתוביות (מה שג'ארוויס אומר) -->
         <div class="subtitle-panel" id="jarvis-speech">
-            System encrypted. Awaiting biometric pulse...
+            Awaiting biometric uplink...
         </div>
 
-        <!-- מסוף דיאגנוסטיקה (שומר שגיאות ולוגים בצורה מאובטחת) -->
+        <!-- מסוף דיאגנוסטיקה ולוגים (שומר שגיאות בבטחה) -->
         <div class="diagnostics-terminal" id="system-terminal">
-            <div class="log-entry" style="color: #666;">[SYSTEM] Ready for initialization protocols.</div>
+            <div class="log-entry" style="color: #666;">[SYSTEM] Modular architecture deployed successfully.</div>
         </div>
 
-        <button class="config-btn" id="key-btn">RE-CONFIG SECURITY KEY (API)</button>
+        <button class="config-btn" id="key-btn">RE-CONFIG API KEY</button>
     </div>
 
-    <script>
-        const initBtn = document.getElementById('init-btn');
-        const bootScreen = document.getElementById('boot-screen');
-        const hudContainer = document.getElementById('hud-container');
-        const statusText = document.getElementById('hud-status-text');
-        const titleText = document.getElementById('hud-title');
-        const speechPanel = document.getElementById('jarvis-speech');
-        const terminal = document.getElementById('system-terminal');
-        const keyBtn = document.getElementById('key-btn');
-
-        let recognition;
-        let isAsleep = true;
-        let explicitStop = false; 
-        let geminiKey = localStorage.getItem('gemini_api_key') || "";
-
-        initBtn.addEventListener('click', () => {
-            bootScreen.style.opacity = '0';
-            setTimeout(() => {
-                bootScreen.style.display = 'none';
-                hudContainer.style.display = 'flex';
-                logToTerminal("SYSTEM", "Mainframe visual layer loaded.", "cyan");
-                checkApiKey();
-                startVoiceEngine();
-            }, 600);
-        });
-
-        keyBtn.addEventListener('click', () => {
-            let key = prompt("Enter Gemini API Key:");
-            if(key) {
-                localStorage.setItem('gemini_api_key', key);
-                geminiKey = key;
-                logToTerminal("SECURITY", "API Key overwritten securely inside LocalStorage.", "green");
-                speechPanel.innerText = "Key updated, sir.";
-            }
-        });
-
-        function logToTerminal(sender, message, color = "#a0aec0") {
-            const time = new Date().toLocaleTimeString();
-            const div = document.createElement('div');
-            div.className = 'log-entry';
-            div.innerHTML = `<span style="color: #4a5568">[${time}]</span> <span style="color: ${color}">[${sender}]</span> ${message}`;
-            terminal.appendChild(div);
-            terminal.scrollTop = terminal.scrollHeight; // גלילה אוטומטית למטה
-        }
-
-        function checkApiKey() {
-            if(!geminiKey) {
-                logToTerminal("WARNING", "Gemini API key is completely missing. Core logic offline.", "#ff0055");
-                speechPanel.innerText = "Provide an API key to wake my neural net, sir.";
-            } else {
-                logToTerminal("SYSTEM", "API key localized. Cryptography test ready.", "green");
-            }
-        }
-
-        function startVoiceEngine() {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if (!SpeechRecognition) {
-                logToTerminal("ERROR", "Webkit Speech Recognition not allowed/supported.", "red");
-                return;
-            }
-
-            recognition = new SpeechRecognition();
-            recognition.lang = 'en-US';
-            recognition.continuous = true;
-            recognition.interimResults = false;
-
-            recognition.onresult = (event) => {
-                const transcript = event.results[event.resultIndex][0].transcript.toLowerCase().trim();
-                logToTerminal("HEARD", `"${transcript}"`, "#cbd5e1");
-
-                if (isAsleep) {
-                    if (transcript.includes("jarvis wake up") || transcript.includes("wake up")) {
-                        wakeUp();
-                    } else {
-                        speechPanel.innerText = "Say 'Jarvis, wake up'...";
-                    }
-                } else {
-                    if (transcript.includes("go to sleep") || transcript.includes("system sleep")) {
-                        goToSleep();
-                    } else {
-                        speechPanel.innerText = `Processing: "${transcript}"`;
-                        processLiveCommand(transcript);
-                    }
-                }
-            };
-
-            recognition.onend = () => { 
-                if (!explicitStop) {
-                    try { recognition.start(); } catch(e) {}
-                }
-            }; 
-            recognition.start();
-        }
-
-        function wakeUp() {
-            isAsleep = false;
-            document.body.classList.add('active');
-            titleText.innerText = "JARVIS: ONLINE";
-            statusText.innerText = "ACTIVE";
-            logToTerminal("SYS", "Security clearance approved. Systems online.", "var(--neon-cyan)");
-            speak("Systems operational. Welcome back, sir.");
-        }
-
-        function goToSleep() {
-            isAsleep = true;
-            document.body.classList.remove('active');
-            titleText.innerText = "JARVIS: DORMANT";
-            statusText.innerText = "STANDBY";
-            logToTerminal("SYS", "Power grid conservation active. Standby mode.", "var(--neon-red)");
-            speak("Understood, entering standby.");
-        }
-
-        function processLiveCommand(command) {
-            if (command.includes("open youtube")) { window.open("https://www.youtube.com", "_blank"); speak("Opening YouTube."); return; }
-            if (command.includes("open google")) { window.open("https://www.google.com", "_blank"); speak("Opening Google."); return; }
-            if (command.includes("open tiktok")) { window.open("https://www.tiktok.com", "_blank"); speak("Opening TikTok."); return; }
-            if (command.includes("search for")) {
-                let query = command.replace("search for", "").trim();
-                window.open(`https://www.google.com/search?q=${query}`, "_blank");
-                speak(`Searching Google for ${query}`);
-                return;
-            }
-            if (command.includes("time")) {
-                const now = new Date();
-                speak(`The time is ${now.getHours()} ${now.getMinutes().toString().padStart(2, '0')}.`);
-                return;
-            }
-
-            if (geminiKey) { askGeminiAI(command); } else { speak("AI key is missing."); }
-        }
-
-        function askGeminiAI(promptText) {
-            statusText.innerText = "THINKING";
-            logToTerminal("UPLINK", "Querying Gemini cloud arrays...");
-
-            const systemPrompt = "You are J.A.R.V.I.S., the advanced AI from Iron Man. Keep answers short, witty, and always call the user 'sir'. Command: " + promptText;
-
-            fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ contents: [{ parts: [{ text: systemPrompt }] }] })
-            })
-            .then(res => {
-                if (!res.ok) {
-                    return res.json().then(errData => {
-                        throw new Error(errData.error?.message || `HTTP ${res.status}`);
-                    });
-                }
-                return res.json();
-            })
-            .then(data => {
-                statusText.innerText = "ACTIVE";
-                if (data.candidates && data.candidates[0]?.content?.parts[0]?.text) {
-                    let textResponse = data.candidates[0].content.parts[0].text;
-                    logToTerminal("AI_CORE", "Uplink success. Telemetry received.", "green");
-                    speak(textResponse);
-                } else {
-                    throw new Error("Payload format unreadable.");
-                }
-            })
-            .catch(err => {
-                statusText.innerText = "ERROR BREAK";
-                // מדפיס את השגיאה האמיתית לגמרי פה באדום בוהק! היא לא תימחק לעולם!
-                logToTerminal("AI_ERROR", err.message, "#ff0055"); 
-                speak("Forgive me sir, my core neural network returned an error. Check the diagnostics terminal.");
-            });
-        }
-
-        function speak(text) {
-            explicitStop = true; 
-            if (recognition) try { recognition.stop(); } catch(e) {}
-            
-            speechPanel.innerText = text;
-
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = 'en-US';
-            utterance.rate = 1.05;
-            utterance.pitch = 0.85;
-
-            utterance.onend = () => { 
-                if(!isAsleep) statusText.innerText = "ACTIVE";
-                explicitStop = false; 
-                if (recognition) try { recognition.start(); } catch(e) {}
-            };
-            window.speechSynthesis.speak(utterance);
-        }
-    </script>
+    <!-- טעינת הסקריפטים בסדר נכון -->
+    <script src="ai-core.js"></script>
+    <script src="jarvis.js"></script>
 </body>
 </html>
