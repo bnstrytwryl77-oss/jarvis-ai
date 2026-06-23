@@ -1,1 +1,107 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>מערכת ג'ארוויס</title>
+    <style>
+        body {
+            background-color: #0f0f0f;
+            color: #00ffcc;
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+        button {
+            background-color: #00ffcc;
+            color: #000;
+            border: none;
+            padding: 15px 30px;
+            font-size: 20px;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+        #status {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+        #transcript {
+            font-size: 24px;
+            color: #fff;
+            text-align: center;
+            max-width: 80%;
+        }
+    </style>
+</head>
+<body>
 
+    <h1>מערכת שליטה מרכזית</h1>
+    <button id="start-btn">הפעל האזנה (ג'ארוויס)</button>
+    <div id="status">הסטטוס: ממתין...</div>
+    <div id="transcript"></div>
+
+    <script>
+        const startBtn = document.getElementById('start-btn');
+        const statusDiv = document.getElementById('status');
+        const transcriptDiv = document.getElementById('transcript');
+
+        // בדיקה האם הדפדפן תומך בזיהוי קולי
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        
+        if (SpeechRecognition) {
+            const recognition = new SpeechRecognition();
+            recognition.lang = 'he-IL'; // זיהוי שפה עברית
+            recognition.interimResults = false;
+
+            startBtn.addEventListener('click', () => {
+                recognition.start();
+                statusDiv.innerText = "הסטטוס: מאזין לפקודה שלך...";
+            });
+
+            recognition.onresult = (event) => {
+                const command = event.results[0][0].transcript;
+                transcriptDiv.innerText = `אמרת: "${command}"`;
+                statusDiv.innerText = "הסטטוס: מעבד נתונים...";
+                
+                processCommand(command);
+            };
+
+            recognition.onerror = (event) => {
+                statusDiv.innerText = "שגיאה בזיהוי הקול: " + event.error;
+            };
+        } else {
+            statusDiv.innerText = "הדפדפן שלך לא תומך בזיהוי קולי. נסה בכרום.";
+        }
+
+        // פונקציה לעיבוד הפקודות והשמעת תשובה
+        function processCommand(command) {
+            let reply = "";
+
+            if (command.includes("מה השעה")) {
+                const now = new Date();
+                reply = `השעה עכשיו היא ${now.getHours()} ו-${now.getMinutes()} דקות.`;
+            } else if (command.includes("שלום")) {
+                reply = "שלום אדוני, המערכות מוכנות לפעולה.";
+            } else {
+                reply = "אני עדיין לא יודע איך לעשות את זה, אבל אני לומד.";
+            }
+
+            speak(reply);
+        }
+
+        // פונקציה שמדברת חזרה אליך
+        function speak(text) {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'he-IL';
+            window.speechSynthesis.speak(utterance);
+            statusDiv.innerText = "הסטטוס: ממתין לפקודה הבאה...";
+        }
+    </script>
+</body>
+</html>
