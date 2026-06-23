@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JARVIS - Pure Cloud HUD</title>
+    <title>JARVIS - Integrated Cloud HUD</title>
     <style>
         :root {
             --neon-cyan: #00f0ff;
@@ -26,7 +26,7 @@
             height: 100vh;
             margin: 0;
             overflow: hidden;
-            transition: color 0.5s ease;
+            transition: color 0.5s ease, background-image 0.5s ease;
             background-image: radial-gradient(circle at 50% 50%, rgba(255, 0, 85, 0.05) 0%, transparent 70%);
         }
 
@@ -94,6 +94,7 @@
             align-items: center;
             justify-content: center;
             animation: rotateReverse 12s linear infinite;
+            transition: border-color 0.5s ease;
         }
 
         .arc-core {
@@ -103,6 +104,7 @@
             background: radial-gradient(circle, #fff 0%, var(--theme-color) 60%, var(--theme-glow) 100%);
             box-shadow: 0 0 30px var(--theme-color);
             animation: pulse 2s infinite ease-in-out;
+            transition: background 0.5s ease, box-shadow 0.5s ease;
         }
 
         h1 {
@@ -110,6 +112,7 @@
             letter-spacing: 6px;
             text-shadow: 0 0 10px var(--theme-color);
             margin: 0 0 10px 0;
+            transition: text-shadow 0.5s ease;
         }
 
         #status {
@@ -132,16 +135,25 @@
             color: #fff;
             text-align: center;
             overflow-y: auto;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+            transition: border-color 0.5s ease;
         }
 
         .config-btn {
             margin-top: 15px;
             background: transparent;
-            color: gray;
-            border: 1px solid gray;
+            color: #666;
+            border: 1px solid #446;
             cursor: pointer;
             padding: 5px 10px;
             font-size: 11px;
+            border-radius: 3px;
+            transition: all 0.3s ease;
+        }
+
+        .config-btn:hover {
+            color: #fff;
+            border-color: #fff;
         }
 
         @keyframes rotate { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
@@ -186,7 +198,7 @@
         let isAsleep = true;
         let geminiKey = localStorage.getItem('gemini_api_key') || "";
 
-        // UI Initialization
+        // כפתור הפעלה ראשוני
         initBtn.addEventListener('click', () => {
             bootScreen.style.opacity = '0';
             setTimeout(() => {
@@ -197,24 +209,31 @@
             }, 800);
         });
 
+        // הגדרת מפתח ה-API ושמירתו בדפדפן בלבד
         keyBtn.addEventListener('click', () => {
             let key = prompt("Please enter your Gemini API Key:");
             if(key) {
                 localStorage.setItem('gemini_api_key', key);
                 geminiKey = key;
-                alert("API Key saved locally!");
+                consoleLog.innerHTML = "<span style='color: green;'>[SUCCESS] API Key updated successfully!</span>";
+                alert("API Key saved locally and securely!");
             }
         });
 
         function checkApiKey() {
             if(!geminiKey) {
-                consoleLog.innerHTML = "<span style='color: orange;'>[WARNING] AI Brain offline. Click 'Set Gemini API Key' below to make Jarvis smart.</span>";
+                consoleLog.innerHTML = "<span style='color: var(--neon-red);'>[WARNING] AI Brain offline. Click 'Set Gemini API Key' below to make Jarvis smart.</span>";
             }
         }
 
-        // Voice Loop
+        // מנוע זיהוי הדיבור של גוגל כרום
         function startVoiceEngine() {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                consoleLog.innerText = "Error: Browser speech recognition not supported.";
+                return;
+            }
+
             recognition = new SpeechRecognition();
             recognition.lang = 'en-US';
             recognition.continuous = true;
@@ -225,46 +244,51 @@
                 console.log("Heard:", transcript);
 
                 if (isAsleep) {
+                    // מצב שינה אדום - מגיב רק למילת התעוררות
                     if (transcript.includes("jarvis wake up") || transcript.includes("wake up")) {
                         wakeUp();
                     } else {
-                        consoleLog.innerHTML = `<span style='color: var(--neon-red);'>[LOCKED] Say "Jarvis, wake up" to activate.</span>`;
+                        consoleLog.innerHTML = `<span style='color: var(--neon-red);'>[LOCKED] System dormant. Say "Jarvis, wake up" to unlock.</span>`;
                     }
                 } else {
+                    // מצב פעיל כחול - מקשיב לכל פקודה ישירות בלי לחזור על השם
                     if (transcript.includes("go to sleep") || transcript.includes("system sleep")) {
                         goToSleep();
                     } else {
-                        consoleLog.innerHTML = `<span>Command detected: "${transcript}"</span>`;
+                        consoleLog.innerHTML = `<span>Command received: "${transcript}"</span>`;
                         processLiveCommand(transcript);
                     }
                 }
             };
 
+            // דואג שהמערכת תישאר דלוקה ותקשיב תמיד בלופ
             recognition.onend = () => { recognition.start(); }; 
             recognition.start();
         }
 
+        // מעבר למצב פעיל (כחול)
         function wakeUp() {
             isAsleep = false;
             document.body.classList.add('active');
             titleH1.innerText = "JARVIS ONLINE";
             statusDiv.innerText = "MODE: ACTIVE / AWAITING INSTRUCTIONS";
-            consoleLog.innerHTML = "<span style='color: var(--neon-cyan);'>[SYSTEM] Systems integrated. I am listening, sir.</span>";
+            consoleLog.innerHTML = "<span style='color: var(--neon-cyan);'>[SYSTEM] Systems integrated. Ready for input, sir.</span>";
             speak("Systems operational. Welcome back, sir.");
         }
 
+        // חזרה למצב שינה (אדום)
         function goToSleep() {
             isAsleep = true;
             document.body.classList.remove('active');
             titleH1.innerText = "SYSTEM DORMANT";
             statusDiv.innerText = "MODE: STANDBY";
             consoleLog.innerHTML = "Say 'Jarvis, wake up' to initialize control...";
-            speak("Understood, entering standby.");
+            speak("Understood, entering standby mode.");
         }
 
-        // Browser & AI Logic Processing
+        // עיבוד הפקודות החיות של הדפדפן וה-AI
         function processLiveCommand(command) {
-            // 1. Browser Commands (Opening Websites)
+            // פקודות דפדפן מהירות
             if (command.includes("open youtube")) {
                 speak("Opening YouTube, sir.");
                 window.open("https://www.youtube.com", "_blank");
@@ -276,7 +300,7 @@
                 return;
             }
             if (command.includes("open tiktok")) {
-                speak("Opening TikTok. Enjoy, sir.");
+                speak("Opening TikTok.");
                 window.open("https://www.tiktok.com", "_blank");
                 return;
             }
@@ -292,21 +316,21 @@
                 return;
             }
 
-            // 2. Advanced AI Thinking Command (Using Gemini API)
+            // חיבור ישיר לבינה המלאכותית (Gemini API) במידה ויש מפתח
             if (geminiKey) {
                 askGeminiAI(command);
             } else {
-                speak("I heard you, but my AI brain key is missing. Please set it up below.");
+                speak("I heard you, but my AI brain key is missing. Please configuration it below, sir.");
             }
         }
 
-        // Direct Browser-to-AI Connection
+        // פנייה ישירה ל-AI
         function askGeminiAI(promptText) {
             statusDiv.innerText = "MODE: THINKING...";
-            consoleLog.innerHTML = "[JARVIS] Accessing satellite network...";
+            consoleLog.innerHTML = "[JARVIS] Processing uplink with mainframe...";
 
-            // Custom system instructions embedded into the AI prompt
-            const systemPrompt = "You are J.A.R.V.I.S., the advanced AI assistant from Iron Man. Keep your answers relatively short, sophisticated, cool, and always address the user as 'sir'. Command: " + promptText;
+            // פקודות מערכת מובנות שמכריחות את ה-AI להתנהג כמו ג'ארוויס
+            const systemPrompt = "You are J.A.R.V.I.S., the highly sophisticated, witty, and loyal AI assistant from Iron Man. Keep your answers concise, cool, advanced, and always address the user as 'sir'. Answer this command: " + promptText;
 
             fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`, {
                 method: "POST",
@@ -322,23 +346,25 @@
             })
             .catch(err => {
                 console.error(err);
-                speak("Forgive me sir, I encountered an error connecting to my database.");
+                speak("Forgive me sir, I encountered an error connecting to my core network.");
                 statusDiv.innerText = "MODE: ACTIVE / AWAITING INSTRUCTIONS";
             });
         }
 
+        // מנוע הדיבור של ג'ארוויס
         function speak(text) {
-            recognition.stop();
-            statusDiv.innerText = "MODE: SPEAKING";
+            recognition.stop(); // עוצר את ההאזנה לרגע כדי שלא ישמע את עצמו מדבר
+            statusDiv.innerText = "MODE: RESPONDING";
             consoleLog.innerHTML = `<span style='color: var(--neon-cyan);'>[JARVIS]: ${text}</span>`;
 
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.lang = 'en-US';
-            utterance.rate = 1.0;
-            utterance.pitch = 0.9; // Dynamic cool tone
+            utterance.rate = 1.05; // מהירות דיבור טבעית ומגניבה
+            utterance.pitch = 0.85; // טון מעט נמוך ורובוטי-יוקרתי
+
             utterance.onend = () => { 
                 statusDiv.innerText = "MODE: ACTIVE / AWAITING INSTRUCTIONS";
-                recognition.start(); 
+                recognition.start(); // מחזיר את ההאזנה מיד כשסיים לדבר
             };
             window.speechSynthesis.speak(utterance);
         }
