@@ -1,4 +1,3 @@
-// מנוע פניות ישירות ל-Gemini API המעודכן
 function askGeminiAI(promptText) {
     const geminiKey = localStorage.getItem('gemini_api_key') || "";
     if (!geminiKey) {
@@ -10,14 +9,13 @@ function askGeminiAI(promptText) {
     document.getElementById('hud-status-text').innerText = "THINKING";
     logToTerminal("UPLINK", "Querying cloud neural networks...");
 
-    // שאיבת המשימות מה-LocalStorage
     const tasks = JSON.parse(localStorage.getItem('jarvis_tasks')) || [];
     const taskContext = tasks.length > 0 ? `Your current active tasks are: ${tasks.join(', ')}.` : "You have no active tasks currently.";
 
     const systemPrompt = `You are J.A.R.V.I.S., the highly advanced, witty, and loyal AI assistant from Iron Man. Keep your answers relatively short, cool, and always address the user as 'sir'. Context: ${taskContext} Command: ${promptText}`;
 
-    // עדכון הכתובת מ-v1beta ל-v1 הרשמי והיציב
-    fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${geminiKey}`, {
+    // מעבר למודל 2.0 המעודכן שנתמך בשרתים
+    fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ contents: [{ parts: [{ text: systemPrompt }] }] })
