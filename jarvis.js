@@ -12,6 +12,9 @@ let recognition;
 let isAsleep = true;
 let explicitStop = false; 
 
+// אובייקט חכם ששומר הפניות לטאבים שג'ארוויס פתח כדי שיוכל לסגור אותם
+let openedWindows = {};
+
 initBtn.addEventListener('click', () => {
     bootScreen.style.opacity = '0';
     setTimeout(() => {
@@ -42,7 +45,6 @@ function logToTerminal(sender, message, color = "#a0aec0") {
     terminal.scrollTop = terminal.scrollHeight;
 }
 
-// שאיבת נתוני סוללה מהדפדפן
 function updateBattery() {
     if (navigator.getBattery) {
         navigator.getBattery().then(battery => {
@@ -54,7 +56,6 @@ function updateBattery() {
     }
 }
 
-// מנוע האזנה
 function startVoiceEngine() {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
@@ -109,13 +110,77 @@ function goToSleep() {
     speak("Understood, entering standby.");
 }
 
-// עיבוד פקודות חכם
+// מעבד הפקודות המשודרג של ג'ארוויס
 function processLiveCommand(command) {
-    if (command.includes("open youtube")) { window.open("https://www.youtube.com", "_blank"); speak("Opening YouTube, sir."); return; }
-    if (command.includes("open google")) { window.open("https://www.google.com", "_blank"); speak("Opening Google."); return; }
-    if (command.includes("open tiktok")) { window.open("https://www.tiktok.com", "_blank"); speak("Opening TikTok."); return; }
+    // --- 1. פתיחת אפליקציות אמיתיות במחשב (Deep Links) ---
+    if (command.includes("open spotify")) { 
+        window.location.href = "spotify://"; 
+        speak("Opening Spotify app, sir."); 
+        return; 
+    }
+    if (command.includes("open discord")) { 
+        window.location.href = "discord://"; 
+        speak("Opening Discord desktop app, sir."); 
+        return; 
+    }
+    if (command.includes("open vscode") || command.includes("open vs code")) { 
+        window.location.href = "vscode://"; 
+        speak("Launching Visual Studio Code, sir."); 
+        return; 
+    }
+    if (command.includes("open roblox")) { 
+        window.location.href = "roblox://"; 
+        speak("Initializing Roblox launcher, sir."); 
+        return; 
+    }
+
+    // --- 2. פתיחת אתרים ורישום שלהם במערכת ---
+    if (command.includes("open youtube")) { 
+        openedWindows['youtube'] = window.open("https://www.youtube.com", "_blank"); 
+        speak("Opening YouTube, sir."); 
+        return; 
+    }
+    if (command.includes("open google")) { 
+        openedWindows['google'] = window.open("https://www.google.com", "_blank"); 
+        speak("Opening Google."); 
+        return; 
+    }
+    if (command.includes("open tiktok")) { 
+        openedWindows['tiktok'] = window.open("https://www.tiktok.com", "_blank"); 
+        speak("Opening TikTok."); 
+        return; 
+    }
+
+    // --- 3. סגירת אתרים (עובד על אתרים שג'ארוויס פתח בעצמו) ---
+    if (command.includes("close youtube")) {
+        if (openedWindows['youtube'] && !openedWindows['youtube'].closed) {
+            openedWindows['youtube'].close();
+            speak("Terminating YouTube session, sir.");
+        } else {
+            speak("YouTube is not currently active under my control, sir.");
+        }
+        return;
+    }
+    if (command.includes("close google")) {
+        if (openedWindows['google'] && !openedWindows['google'].closed) {
+            openedWindows['google'].close();
+            speak("Closing Google tab, sir.");
+        } else {
+            speak("Google tab not found, sir.");
+        }
+        return;
+    }
+    if (command.includes("close tiktok")) {
+        if (openedWindows['tiktok'] && !openedWindows['tiktok'].closed) {
+            openedWindows['tiktok'].close();
+            speak("Closing TikTok, sir.");
+        } else {
+            speak("TikTok link is already dead, sir.");
+        }
+        return;
+    }
     
-    // הוספת משימה קולית! למשל: "add a task study for the exam"
+    // --- 4. ניהול משימות קוליות ---
     if (command.includes("add a task") || command.includes("add task")) {
         let task = command.replace("add a task", "").replace("add task", "").trim();
         if(task) {
@@ -125,7 +190,6 @@ function processLiveCommand(command) {
         return;
     }
 
-    // מחיקת משימות קולית
     if (command.includes("clear all tasks") || command.includes("clear tasks")) {
         manageTasks('clear');
         speak("Directives cleared from database, sir.");
@@ -138,7 +202,7 @@ function processLiveCommand(command) {
         return;
     }
 
-    // שליחה לבינה המלאכותית (נמצא ב-ai-core.js)
+    // פנייה לבינה המלאכותית המעודכנת
     if (typeof askGeminiAI === "function") {
         askGeminiAI(command);
     } else {
@@ -146,7 +210,6 @@ function processLiveCommand(command) {
     }
 }
 
-// ניהול המשימות במסך וב-Storage
 function manageTasks(action, taskText = "") {
     let tasks = JSON.parse(localStorage.getItem('jarvis_tasks')) || [];
     if (action === 'add' && taskText) {
@@ -173,7 +236,6 @@ function renderTasks() {
     }
 }
 
-// מנוע הדיבור (TTS)
 function speak(text) {
     explicitStop = true; 
     if (recognition) try { recognition.stop(); } catch(e) {}
