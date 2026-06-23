@@ -3,18 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JARVIS - Core Interface</title>
+    <title>JARVIS - Pure Cloud HUD</title>
     <style>
         :root {
             --neon-cyan: #00f0ff;
             --neon-blue: #0072ff;
-            --dark-bg: #020813;
+            --neon-red: #ff0055;
+            --neon-dark-red: #990022;
+            --dark-bg: #02050d;
+            --theme-color: var(--neon-red);
+            --theme-glow: var(--neon-dark-red);
         }
 
         body {
             background-color: var(--dark-bg);
-            color: var(--neon-cyan);
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            color: var(--theme-color);
+            font-family: 'Segoe UI', Roboto, sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -22,110 +26,94 @@
             height: 100vh;
             margin: 0;
             overflow: hidden;
-            background-image: 
-                radial-gradient(circle at 50% 50%, rgba(0, 114, 255, 0.15) 0%, transparent 60%),
-                linear-gradient(rgba(18, 24, 38, 0.5) 50%, rgba(0, 0, 0, 0.2) 50%),
-                linear-gradient(90deg, rgba(18, 24, 38, 0.5) 50%, rgba(0, 0, 0, 0.2) 50%);
-            background-size: 100% 100%, 4px 4px, 4px 4px;
+            transition: color 0.5s ease;
+            background-image: radial-gradient(circle at 50% 50%, rgba(255, 0, 85, 0.05) 0%, transparent 70%);
         }
 
-        /* Initial Boot Screen */
+        body.active {
+            --theme-color: var(--neon-cyan);
+            --theme-glow: var(--neon-blue);
+            background-image: radial-gradient(circle at 50% 50%, rgba(0, 114, 255, 0.1) 0%, transparent 70%);
+        }
+
         #boot-screen {
             position: absolute;
             display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 10;
             background: var(--dark-bg);
             width: 100%;
             height: 100%;
-            transition: opacity 1s ease;
+            z-index: 10;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.8s ease;
         }
 
         .boot-btn {
             background: transparent;
-            color: var(--neon-cyan);
-            border: 2px solid var(--neon-cyan);
+            color: var(--theme-color);
+            border: 2px solid var(--theme-color);
             padding: 20px 40px;
             font-size: 18px;
             font-weight: bold;
             letter-spacing: 3px;
             cursor: pointer;
-            border-radius: 5px;
-            box-shadow: 0 0 15px rgba(0, 240, 255, 0.3);
-            text-shadow: 0 0 5px var(--neon-cyan);
+            box-shadow: 0 0 15px var(--theme-glow);
+            text-shadow: 0 0 5px var(--theme-color);
             transition: all 0.3s ease;
         }
 
-        .boot-btn:hover {
-            background: var(--neon-cyan);
-            color: var(--dark-bg);
-            box-shadow: 0 0 30px var(--neon-cyan);
-        }
-
-        /* Main HUD Design */
         #hud-container {
             display: none;
             flex-direction: column;
             align-items: center;
             width: 100%;
             max-width: 800px;
-            opacity: 0;
-            transition: opacity 1s ease;
         }
 
-        /* Arc Reactor Arc Visualizer */
         .arc-reactor {
             position: relative;
-            width: 200px;
-            height: 200px;
+            width: 220px;
+            height: 220px;
             border-radius: 50%;
-            border: 4px dashed var(--neon-cyan);
+            border: 4px dashed var(--theme-color);
             display: flex;
             align-items: center;
             justify-content: center;
-            animation: rotate 20s linear infinite;
-            box-shadow: 0 0 40px rgba(0, 240, 255, 0.2);
+            animation: rotate 25s linear infinite;
+            box-shadow: 0 0 30px var(--theme-glow);
             margin-bottom: 40px;
+            transition: border-color 0.5s ease, box-shadow 0.5s ease;
         }
 
         .arc-inner {
-            width: 140px;
-            height: 140px;
+            width: 160px;
+            height: 160px;
             border-radius: 50%;
-            border: 3px solid var(--neon-blue);
+            border: 3px solid var(--theme-color);
             display: flex;
             align-items: center;
             justify-content: center;
-            animation: rotateReverse 10s linear infinite;
+            animation: rotateReverse 12s linear infinite;
         }
 
         .arc-core {
-            width: 70px;
-            height: 70px;
+            width: 80px;
+            height: 80px;
             border-radius: 50%;
-            background: radial-gradient(circle, #fff 0%, var(--neon-cyan) 60%, var(--neon-blue) 100%);
-            box-shadow: 0 0 30px var(--neon-cyan), inset 0 0 10px #fff;
-            transition: transform 0.2s ease;
+            background: radial-gradient(circle, #fff 0%, var(--theme-color) 60%, var(--theme-glow) 100%);
+            box-shadow: 0 0 30px var(--theme-color);
+            animation: pulse 2s infinite ease-in-out;
         }
 
-        .listening .arc-core {
-            animation: pulse 1.5s infinite ease-in-out;
-        }
-
-        /* UI Text Elements */
         h1 {
-            font-size: 28px;
-            letter-spacing: 4px;
-            text-shadow: 0 0 10px var(--neon-cyan);
+            font-size: 32px;
+            letter-spacing: 6px;
+            text-shadow: 0 0 10px var(--theme-color);
             margin: 0 0 10px 0;
-            text-transform: uppercase;
         }
 
         #status {
             font-size: 14px;
-            color: var(--neon-blue);
             letter-spacing: 2px;
             text-transform: uppercase;
             margin-bottom: 30px;
@@ -135,53 +123,54 @@
         #console-log {
             width: 80%;
             height: 120px;
-            background: rgba(0, 114, 255, 0.05);
-            border: 1px solid rgba(0, 240, 255, 0.2);
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--theme-color);
             padding: 15px;
             border-radius: 5px;
-            overflow-y: auto;
             font-family: 'Courier New', monospace;
             font-size: 16px;
             color: #fff;
-            text-shadow: 0 0 3px rgba(255,255,255,0.5);
             text-align: center;
+            overflow-y: auto;
         }
 
-        /* Animations */
-        @keyframes rotate {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        .config-btn {
+            margin-top: 15px;
+            background: transparent;
+            color: gray;
+            border: 1px solid gray;
+            cursor: pointer;
+            padding: 5px 10px;
+            font-size: 11px;
         }
-        @keyframes rotateReverse {
-            0% { transform: rotate(360deg); }
-            100% { transform: rotate(0deg); }
-        }
+
+        @keyframes rotate { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes rotateReverse { 0% { transform: rotate(360deg); } 100% { transform: rotate(0deg); } }
         @keyframes pulse {
-            0% { transform: scale(1); box-shadow: 0 0 30px var(--neon-cyan); }
-            50% { transform: scale(1.2); box-shadow: 0 0 50px var(--neon-cyan), 0 0 20px #fff; }
-            100% { transform: scale(1); box-shadow: 0 0 30px var(--neon-cyan); }
+            0% { transform: scale(0.95); opacity: 0.8; }
+            50% { transform: scale(1.05); opacity: 1; box-shadow: 0 0 40px var(--theme-color); }
+            100% { transform: scale(0.95); opacity: 0.8; }
         }
     </style>
 </head>
 <body>
 
-    <!-- Step 1: Click to activate browser permissions -->
     <div id="boot-screen">
-        <button class="boot-btn" id="init-btn">INITIALIZE JARVIS CORE</button>
+        <button class="boot-btn" id="init-btn">INITIALIZE CLOUD SYSTEM</button>
     </div>
 
-    <!-- Step 2: Main HUD View -->
     <div id="hud-container">
-        <h1>J.A.R.V.I.S.</h1>
-        <div id="status">SYSTEM: STANDBY</div>
+        <h1 id="title">SYSTEM DORMANT</h1>
+        <div id="status">MODE: STANDBY</div>
         
-        <div class="arc-reactor" id="reactor">
+        <div class="arc-reactor">
             <div class="arc-inner">
                 <div class="arc-core"></div>
             </div>
         </div>
 
-        <div id="console-log">Say "Hi Jarvis" followed by a command...</div>
+        <div id="console-log">Say "Jarvis, wake up" to initialize control...</div>
+        <button class="config-btn" id="key-btn">Set Gemini API Key</button>
     </div>
 
     <script>
@@ -190,126 +179,167 @@
         const hudContainer = document.getElementById('hud-container');
         const statusDiv = document.getElementById('status');
         const consoleLog = document.getElementById('console-log');
-        const reactor = document.getElementById('reactor');
+        const titleH1 = document.getElementById('title');
+        const keyBtn = document.getElementById('key-btn');
 
         let recognition;
-        let isSystemActive = false;
+        let isAsleep = true;
+        let geminiKey = localStorage.getItem('gemini_api_key') || "";
 
-        // Initialize voice engine on single click
+        // UI Initialization
         initBtn.addEventListener('click', () => {
             bootScreen.style.opacity = '0';
             setTimeout(() => {
                 bootScreen.style.display = 'none';
                 hudContainer.style.display = 'flex';
-                setTimeout(() => hudContainer.style.opacity = '1', 50);
-                startJarvisCore();
-            }, 1000);
+                checkApiKey();
+                startVoiceEngine();
+            }, 800);
         });
 
-        function startJarvisCore() {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            
-            if (!SpeechRecognition) {
-                consoleLog.innerText = "CRITICAL ERROR: Speech recognition not supported on this browser.";
-                statusDiv.innerText = "SYSTEM: FAILED";
-                return;
+        keyBtn.addEventListener('click', () => {
+            let key = prompt("Please enter your Gemini API Key:");
+            if(key) {
+                localStorage.setItem('gemini_api_key', key);
+                geminiKey = key;
+                alert("API Key saved locally!");
             }
+        });
 
+        function checkApiKey() {
+            if(!geminiKey) {
+                consoleLog.innerHTML = "<span style='color: orange;'>[WARNING] AI Brain offline. Click 'Set Gemini API Key' below to make Jarvis smart.</span>";
+            }
+        }
+
+        // Voice Loop
+        function startVoiceEngine() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             recognition = new SpeechRecognition();
-            recognition.lang = 'en-US'; // English Language Input
-            recognition.continuous = true; // Keep listening indefinitely
+            recognition.lang = 'en-US';
+            recognition.continuous = true;
             recognition.interimResults = false;
 
-            recognition.onstart = () => {
-                isSystemActive = true;
-                statusDiv.innerText = "SYSTEM: ACTIVE / LISTENING";
-                reactor.classList.add('listening');
-                consoleLog.innerHTML = "<span style='color: #00f0ff;'>[SYSTEM] Core loaded. Awaiting wake word 'Hi Jarvis'...</span>";
-            };
-
             recognition.onresult = (event) => {
-                const currentResultIndex = event.resultIndex;
-                const transcript = event.results[currentResultIndex][0].transcript.toLowerCase().trim();
-                
-                // Check for wake word
-                if (transcript.includes("hi jarvis") || transcript.includes("hey jarvis") || transcript.includes("jarvis")) {
-                    // Extract the command that comes AFTER the wake word
-                    let command = transcript.replace(/.*jarvis/, "").trim();
-                    
-                    consoleLog.innerHTML = `<span style='color: #fff;'>Detected: "${transcript}"</span>`;
-                    
-                    if (command === "") {
-                        speak("Yes, sir? I am monitoring.");
-                        consoleLog.innerHTML += `<br><span style='color: var(--neon-blue);'>[JARVIS] Awaiting instructions...</span>`;
+                const transcript = event.results[event.resultIndex][0].transcript.toLowerCase().trim();
+                console.log("Heard:", transcript);
+
+                if (isAsleep) {
+                    if (transcript.includes("jarvis wake up") || transcript.includes("wake up")) {
+                        wakeUp();
                     } else {
-                        processCommand(command);
+                        consoleLog.innerHTML = `<span style='color: var(--neon-red);'>[LOCKED] Say "Jarvis, wake up" to activate.</span>`;
+                    }
+                } else {
+                    if (transcript.includes("go to sleep") || transcript.includes("system sleep")) {
+                        goToSleep();
+                    } else {
+                        consoleLog.innerHTML = `<span>Command detected: "${transcript}"</span>`;
+                        processLiveCommand(transcript);
                     }
                 }
             };
 
-            recognition.onerror = (event) => {
-                console.error("Speech Error: ", event.error);
-                // Auto restart on network/no-speech errors to stay always-on
-                if (event.error === 'no-speech') return;
-                statusDiv.innerText = "SYSTEM: ERROR";
-            };
-
-            recognition.onend = () => {
-                // Force continuous loop even if browser cuts off
-                if (isSystemActive) recognition.start();
-            };
-
+            recognition.onend = () => { recognition.start(); }; 
             recognition.start();
         }
 
-        // Logic Processing (Jarvis responses)
-        function processCommand(command) {
-            let reply = "";
-            console.log("Processing command: " + command);
-
-            if (command.includes("time") || command.includes("what time")) {
-                const now = new Date();
-                reply = `The current time is ${now.getHours()} ${now.getMinutes().toString().padStart(2, '0')}.`;
-            } 
-            else if (command.includes("status") || command.includes("system check")) {
-                reply = "All core systems are operational. Network integrity is secure, and I am running at peak performance.";
-            } 
-            else if (command.includes("where am i") || command.includes("city")) {
-                reply = "Based on local telemetry, you are currently in Israel, sir.";
-            }
-            else if (command.includes("clear")) {
-                consoleLog.innerHTML = "[SYSTEM] Console cleared.";
-                return;
-            }
-            else {
-                reply = `I heard you say: "${command}". I am ready to link this command to your local PC controller once configured.`;
-            }
-
-            speak(reply);
+        function wakeUp() {
+            isAsleep = false;
+            document.body.classList.add('active');
+            titleH1.innerText = "JARVIS ONLINE";
+            statusDiv.innerText = "MODE: ACTIVE / AWAITING INSTRUCTIONS";
+            consoleLog.innerHTML = "<span style='color: var(--neon-cyan);'>[SYSTEM] Systems integrated. I am listening, sir.</span>";
+            speak("Systems operational. Welcome back, sir.");
         }
 
-        // Voice output function
+        function goToSleep() {
+            isAsleep = true;
+            document.body.classList.remove('active');
+            titleH1.innerText = "SYSTEM DORMANT";
+            statusDiv.innerText = "MODE: STANDBY";
+            consoleLog.innerHTML = "Say 'Jarvis, wake up' to initialize control...";
+            speak("Understood, entering standby.");
+        }
+
+        // Browser & AI Logic Processing
+        function processLiveCommand(command) {
+            // 1. Browser Commands (Opening Websites)
+            if (command.includes("open youtube")) {
+                speak("Opening YouTube, sir.");
+                window.open("https://www.youtube.com", "_blank");
+                return;
+            }
+            if (command.includes("open google")) {
+                speak("Opening Google.");
+                window.open("https://www.google.com", "_blank");
+                return;
+            }
+            if (command.includes("open tiktok")) {
+                speak("Opening TikTok. Enjoy, sir.");
+                window.open("https://www.tiktok.com", "_blank");
+                return;
+            }
+            if (command.includes("search for")) {
+                let query = command.replace("search for", "").trim();
+                speak(`Searching Google for ${query}`);
+                window.open(`https://www.google.com/search?q=${query}`, "_blank");
+                return;
+            }
+            if (command.includes("time")) {
+                const now = new Date();
+                speak(`The time is ${now.getHours()} ${now.getMinutes().toString().padStart(2, '0')}.`);
+                return;
+            }
+
+            // 2. Advanced AI Thinking Command (Using Gemini API)
+            if (geminiKey) {
+                askGeminiAI(command);
+            } else {
+                speak("I heard you, but my AI brain key is missing. Please set it up below.");
+            }
+        }
+
+        // Direct Browser-to-AI Connection
+        function askGeminiAI(promptText) {
+            statusDiv.innerText = "MODE: THINKING...";
+            consoleLog.innerHTML = "[JARVIS] Accessing satellite network...";
+
+            // Custom system instructions embedded into the AI prompt
+            const systemPrompt = "You are J.A.R.V.I.S., the advanced AI assistant from Iron Man. Keep your answers relatively short, sophisticated, cool, and always address the user as 'sir'. Command: " + promptText;
+
+            fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: systemPrompt }] }]
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                let aiResponse = data.candidates[0].content.parts[0].text;
+                speak(aiResponse);
+            })
+            .catch(err => {
+                console.error(err);
+                speak("Forgive me sir, I encountered an error connecting to my database.");
+                statusDiv.innerText = "MODE: ACTIVE / AWAITING INSTRUCTIONS";
+            });
+        }
+
         function speak(text) {
-            // Temporarily stop recognition so Jarvis doesn't hear himself talk
-            if (recognition) recognition.stop();
-            isSystemActive = false;
-            
-            statusDiv.innerText = "SYSTEM: RESPONDING";
-            consoleLog.innerHTML += `<br><span style='color: var(--neon-cyan);'>[JARVIS]: ${text}</span>`;
+            recognition.stop();
+            statusDiv.innerText = "MODE: SPEAKING";
+            consoleLog.innerHTML = `<span style='color: var(--neon-cyan);'>[JARVIS]: ${text}</span>`;
 
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.lang = 'en-US';
-            
-            // Adjust tone to be slightly robotic and cool
-            utterance.rate = 1.0; 
-            utterance.pitch = 0.9; 
-
-            utterance.onend = () => {
-                isSystemActive = true;
-                statusDiv.innerText = "SYSTEM: ACTIVE / LISTENING";
-                if (recognition) recognition.start();
+            utterance.rate = 1.0;
+            utterance.pitch = 0.9; // Dynamic cool tone
+            utterance.onend = () => { 
+                statusDiv.innerText = "MODE: ACTIVE / AWAITING INSTRUCTIONS";
+                recognition.start(); 
             };
-
             window.speechSynthesis.speak(utterance);
         }
     </script>
