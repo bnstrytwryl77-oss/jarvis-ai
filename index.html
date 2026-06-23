@@ -1,106 +1,316 @@
 <!DOCTYPE html>
-<html lang="he" dir="rtl">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>מערכת ג'ארוויס</title>
+    <title>JARVIS - Core Interface</title>
     <style>
+        :root {
+            --neon-cyan: #00f0ff;
+            --neon-blue: #0072ff;
+            --dark-bg: #020813;
+        }
+
         body {
-            background-color: #0f0f0f;
-            color: #00ffcc;
-            font-family: 'Courier New', Courier, monospace;
+            background-color: var(--dark-bg);
+            color: var(--neon-cyan);
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             height: 100vh;
             margin: 0;
+            overflow: hidden;
+            background-image: 
+                radial-gradient(circle at 50% 50%, rgba(0, 114, 255, 0.15) 0%, transparent 60%),
+                linear-gradient(rgba(18, 24, 38, 0.5) 50%, rgba(0, 0, 0, 0.2) 50%),
+                linear-gradient(90deg, rgba(18, 24, 38, 0.5) 50%, rgba(0, 0, 0, 0.2) 50%);
+            background-size: 100% 100%, 4px 4px, 4px 4px;
         }
-        button {
-            background-color: #00ffcc;
-            color: #000;
-            border: none;
-            padding: 15px 30px;
-            font-size: 20px;
+
+        /* Initial Boot Screen */
+        #boot-screen {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            background: var(--dark-bg);
+            width: 100%;
+            height: 100%;
+            transition: opacity 1s ease;
+        }
+
+        .boot-btn {
+            background: transparent;
+            color: var(--neon-cyan);
+            border: 2px solid var(--neon-cyan);
+            padding: 20px 40px;
+            font-size: 18px;
+            font-weight: bold;
+            letter-spacing: 3px;
             cursor: pointer;
             border-radius: 5px;
-            margin-bottom: 20px;
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.3);
+            text-shadow: 0 0 5px var(--neon-cyan);
+            transition: all 0.3s ease;
+        }
+
+        .boot-btn:hover {
+            background: var(--neon-cyan);
+            color: var(--dark-bg);
+            box-shadow: 0 0 30px var(--neon-cyan);
+        }
+
+        /* Main HUD Design */
+        #hud-container {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 800px;
+            opacity: 0;
+            transition: opacity 1s ease;
+        }
+
+        /* Arc Reactor Arc Visualizer */
+        .arc-reactor {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            border: 4px dashed var(--neon-cyan);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: rotate 20s linear infinite;
+            box-shadow: 0 0 40px rgba(0, 240, 255, 0.2);
+            margin-bottom: 40px;
+        }
+
+        .arc-inner {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            border: 3px solid var(--neon-blue);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: rotateReverse 10s linear infinite;
+        }
+
+        .arc-core {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #fff 0%, var(--neon-cyan) 60%, var(--neon-blue) 100%);
+            box-shadow: 0 0 30px var(--neon-cyan), inset 0 0 10px #fff;
+            transition: transform 0.2s ease;
+        }
+
+        .listening .arc-core {
+            animation: pulse 1.5s infinite ease-in-out;
+        }
+
+        /* UI Text Elements */
+        h1 {
+            font-size: 28px;
+            letter-spacing: 4px;
+            text-shadow: 0 0 10px var(--neon-cyan);
+            margin: 0 0 10px 0;
+            text-transform: uppercase;
+        }
+
+        #status {
+            font-size: 14px;
+            color: var(--neon-blue);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 30px;
             font-weight: bold;
         }
-        #status {
-            font-size: 18px;
-            margin-bottom: 10px;
-        }
-        #transcript {
-            font-size: 24px;
+
+        #console-log {
+            width: 80%;
+            height: 120px;
+            background: rgba(0, 114, 255, 0.05);
+            border: 1px solid rgba(0, 240, 255, 0.2);
+            padding: 15px;
+            border-radius: 5px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
             color: #fff;
+            text-shadow: 0 0 3px rgba(255,255,255,0.5);
             text-align: center;
-            max-width: 80%;
+        }
+
+        /* Animations */
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        @keyframes rotateReverse {
+            0% { transform: rotate(360deg); }
+            100% { transform: rotate(0deg); }
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 30px var(--neon-cyan); }
+            50% { transform: scale(1.2); box-shadow: 0 0 50px var(--neon-cyan), 0 0 20px #fff; }
+            100% { transform: scale(1); box-shadow: 0 0 30px var(--neon-cyan); }
         }
     </style>
 </head>
 <body>
 
-    <h1>מערכת שליטה מרכזית</h1>
-    <button id="start-btn">הפעל האזנה (ג'ארוויס)</button>
-    <div id="status">הסטטוס: ממתין...</div>
-    <div id="transcript"></div>
+    <!-- Step 1: Click to activate browser permissions -->
+    <div id="boot-screen">
+        <button class="boot-btn" id="init-btn">INITIALIZE JARVIS CORE</button>
+    </div>
+
+    <!-- Step 2: Main HUD View -->
+    <div id="hud-container">
+        <h1>J.A.R.V.I.S.</h1>
+        <div id="status">SYSTEM: STANDBY</div>
+        
+        <div class="arc-reactor" id="reactor">
+            <div class="arc-inner">
+                <div class="arc-core"></div>
+            </div>
+        </div>
+
+        <div id="console-log">Say "Hi Jarvis" followed by a command...</div>
+    </div>
 
     <script>
-        const startBtn = document.getElementById('start-btn');
+        const initBtn = document.getElementById('init-btn');
+        const bootScreen = document.getElementById('boot-screen');
+        const hudContainer = document.getElementById('hud-container');
         const statusDiv = document.getElementById('status');
-        const transcriptDiv = document.getElementById('transcript');
+        const consoleLog = document.getElementById('console-log');
+        const reactor = document.getElementById('reactor');
 
-        // בדיקה האם הדפדפן תומך בזיהוי קולי
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        
-        if (SpeechRecognition) {
-            const recognition = new SpeechRecognition();
-            recognition.lang = 'he-IL'; // זיהוי שפה עברית
+        let recognition;
+        let isSystemActive = false;
+
+        // Initialize voice engine on single click
+        initBtn.addEventListener('click', () => {
+            bootScreen.style.opacity = '0';
+            setTimeout(() => {
+                bootScreen.style.display = 'none';
+                hudContainer.style.display = 'flex';
+                setTimeout(() => hudContainer.style.opacity = '1', 50);
+                startJarvisCore();
+            }, 1000);
+        });
+
+        function startJarvisCore() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            
+            if (!SpeechRecognition) {
+                consoleLog.innerText = "CRITICAL ERROR: Speech recognition not supported on this browser.";
+                statusDiv.innerText = "SYSTEM: FAILED";
+                return;
+            }
+
+            recognition = new SpeechRecognition();
+            recognition.lang = 'en-US'; // English Language Input
+            recognition.continuous = true; // Keep listening indefinitely
             recognition.interimResults = false;
 
-            startBtn.addEventListener('click', () => {
-                recognition.start();
-                statusDiv.innerText = "הסטטוס: מאזין לפקודה שלך...";
-            });
+            recognition.onstart = () => {
+                isSystemActive = true;
+                statusDiv.innerText = "SYSTEM: ACTIVE / LISTENING";
+                reactor.classList.add('listening');
+                consoleLog.innerHTML = "<span style='color: #00f0ff;'>[SYSTEM] Core loaded. Awaiting wake word 'Hi Jarvis'...</span>";
+            };
 
             recognition.onresult = (event) => {
-                const command = event.results[0][0].transcript;
-                transcriptDiv.innerText = `אמרת: "${command}"`;
-                statusDiv.innerText = "הסטטוס: מעבד נתונים...";
+                const currentResultIndex = event.resultIndex;
+                const transcript = event.results[currentResultIndex][0].transcript.toLowerCase().trim();
                 
-                processCommand(command);
+                // Check for wake word
+                if (transcript.includes("hi jarvis") || transcript.includes("hey jarvis") || transcript.includes("jarvis")) {
+                    // Extract the command that comes AFTER the wake word
+                    let command = transcript.replace(/.*jarvis/, "").trim();
+                    
+                    consoleLog.innerHTML = `<span style='color: #fff;'>Detected: "${transcript}"</span>`;
+                    
+                    if (command === "") {
+                        speak("Yes, sir? I am monitoring.");
+                        consoleLog.innerHTML += `<br><span style='color: var(--neon-blue);'>[JARVIS] Awaiting instructions...</span>`;
+                    } else {
+                        processCommand(command);
+                    }
+                }
             };
 
             recognition.onerror = (event) => {
-                statusDiv.innerText = "שגיאה בזיהוי הקול: " + event.error;
+                console.error("Speech Error: ", event.error);
+                // Auto restart on network/no-speech errors to stay always-on
+                if (event.error === 'no-speech') return;
+                statusDiv.innerText = "SYSTEM: ERROR";
             };
-        } else {
-            statusDiv.innerText = "הדפדפן שלך לא תומך בזיהוי קולי. נסה בכרום.";
+
+            recognition.onend = () => {
+                // Force continuous loop even if browser cuts off
+                if (isSystemActive) recognition.start();
+            };
+
+            recognition.start();
         }
 
-        // פונקציה לעיבוד הפקודות והשמעת תשובה
+        // Logic Processing (Jarvis responses)
         function processCommand(command) {
             let reply = "";
+            console.log("Processing command: " + command);
 
-            if (command.includes("מה השעה")) {
+            if (command.includes("time") || command.includes("what time")) {
                 const now = new Date();
-                reply = `השעה עכשיו היא ${now.getHours()} ו-${now.getMinutes()} דקות.`;
-            } else if (command.includes("שלום")) {
-                reply = "שלום אדוני, המערכות מוכנות לפעולה.";
-            } else {
-                reply = "אני עדיין לא יודע איך לעשות את זה, אבל אני לומד.";
+                reply = `The current time is ${now.getHours()} ${now.getMinutes().toString().padStart(2, '0')}.`;
+            } 
+            else if (command.includes("status") || command.includes("system check")) {
+                reply = "All core systems are operational. Network integrity is secure, and I am running at peak performance.";
+            } 
+            else if (command.includes("where am i") || command.includes("city")) {
+                reply = "Based on local telemetry, you are currently in Israel, sir.";
+            }
+            else if (command.includes("clear")) {
+                consoleLog.innerHTML = "[SYSTEM] Console cleared.";
+                return;
+            }
+            else {
+                reply = `I heard you say: "${command}". I am ready to link this command to your local PC controller once configured.`;
             }
 
             speak(reply);
         }
 
-        // פונקציה שמדברת חזרה אליך
+        // Voice output function
         function speak(text) {
+            // Temporarily stop recognition so Jarvis doesn't hear himself talk
+            if (recognition) recognition.stop();
+            isSystemActive = false;
+            
+            statusDiv.innerText = "SYSTEM: RESPONDING";
+            consoleLog.innerHTML += `<br><span style='color: var(--neon-cyan);'>[JARVIS]: ${text}</span>`;
+
             const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = 'he-IL';
+            utterance.lang = 'en-US';
+            
+            // Adjust tone to be slightly robotic and cool
+            utterance.rate = 1.0; 
+            utterance.pitch = 0.9; 
+
+            utterance.onend = () => {
+                isSystemActive = true;
+                statusDiv.innerText = "SYSTEM: ACTIVE / LISTENING";
+                if (recognition) recognition.start();
+            };
+
             window.speechSynthesis.speak(utterance);
-            statusDiv.innerText = "הסטטוס: ממתין לפקודה הבאה...";
         }
     </script>
 </body>
