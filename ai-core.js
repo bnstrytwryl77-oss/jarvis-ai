@@ -1,4 +1,4 @@
-// מנוע פניות ישירות ל-Gemini API
+// מנוע פניות ישירות ל-Gemini API המעודכן
 function askGeminiAI(promptText) {
     const geminiKey = localStorage.getItem('gemini_api_key') || "";
     if (!geminiKey) {
@@ -10,13 +10,14 @@ function askGeminiAI(promptText) {
     document.getElementById('hud-status-text').innerText = "THINKING";
     logToTerminal("UPLINK", "Querying cloud neural networks...");
 
-    // הזרקת המשימות הנוכחיות לזיכרון של ה-AI כדי שידע עליהן כשהוא מדבר איתך!
+    // שאיבת המשימות מה-LocalStorage
     const tasks = JSON.parse(localStorage.getItem('jarvis_tasks')) || [];
     const taskContext = tasks.length > 0 ? `Your current active tasks are: ${tasks.join(', ')}.` : "You have no active tasks currently.";
 
     const systemPrompt = `You are J.A.R.V.I.S., the highly advanced, witty, and loyal AI assistant from Iron Man. Keep your answers relatively short, cool, and always address the user as 'sir'. Context: ${taskContext} Command: ${promptText}`;
 
-    fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`, {
+    // עדכון הכתובת מ-v1beta ל-v1 הרשמי והיציב
+    fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${geminiKey}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ contents: [{ parts: [{ text: systemPrompt }] }] })
@@ -30,6 +31,7 @@ function askGeminiAI(promptText) {
         return res.json();
     })
     .then(data => {
+        document.getElementById('hud-status-text').innerText = "ACTIVE";
         if (data.candidates && data.candidates[0]?.content?.parts[0]?.text) {
             let textResponse = data.candidates[0].content.parts[0].text;
             logToTerminal("AI_CORE", "Telemetry uplink complete.", "green");
