@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JARVIS - Integrated Cloud HUD</title>
+    <title>JARVIS - Stable Cloud HUD</title>
     <style>
         :root {
             --neon-cyan: #00f0ff;
@@ -112,7 +112,6 @@
             letter-spacing: 6px;
             text-shadow: 0 0 10px var(--theme-color);
             margin: 0 0 10px 0;
-            transition: text-shadow 0.5s ease;
         }
 
         #status {
@@ -136,7 +135,6 @@
             text-align: center;
             overflow-y: auto;
             box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
-            transition: border-color 0.5s ease;
         }
 
         .config-btn {
@@ -148,12 +146,6 @@
             padding: 5px 10px;
             font-size: 11px;
             border-radius: 3px;
-            transition: all 0.3s ease;
-        }
-
-        .config-btn:hover {
-            color: #fff;
-            border-color: #fff;
         }
 
         @keyframes rotate { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
@@ -196,9 +188,9 @@
 
         let recognition;
         let isAsleep = true;
+        let explicitStop = false; // דגל קריטי שמונע מג'ארוויס להקשיב לעצמו
         let geminiKey = localStorage.getItem('gemini_api_key') || "";
 
-        // כפתור הפעלה ראשוני
         initBtn.addEventListener('click', () => {
             bootScreen.style.opacity = '0';
             setTimeout(() => {
@@ -209,30 +201,25 @@
             }, 800);
         });
 
-        // הגדרת מפתח ה-API ושמירתו בדפדפן בלבד
         keyBtn.addEventListener('click', () => {
             let key = prompt("Please enter your Gemini API Key:");
             if(key) {
                 localStorage.setItem('gemini_api_key', key);
                 geminiKey = key;
-                consoleLog.innerHTML = "<span style='color: green;'>[SUCCESS] API Key updated successfully!</span>";
-                alert("API Key saved locally and securely!");
+                consoleLog.innerHTML = "<span style='color: green;'>[SUCCESS] API Key updated!</span>";
+                alert("API Key saved locally!");
             }
         });
 
         function checkApiKey() {
             if(!geminiKey) {
-                consoleLog.innerHTML = "<span style='color: var(--neon-red);'>[WARNING] AI Brain offline. Click 'Set Gemini API Key' below to make Jarvis smart.</span>";
+                consoleLog.innerHTML = "<span style='color: var(--neon-red);'>[WARNING] AI Brain offline. Click 'Set Gemini API Key'.</span>";
             }
         }
 
-        // מנוע זיהוי הדיבור של גוגל כרום
         function startVoiceEngine() {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if (!SpeechRecognition) {
-                consoleLog.innerText = "Error: Browser speech recognition not supported.";
-                return;
-            }
+            if (!SpeechRecognition) return;
 
             recognition = new SpeechRecognition();
             recognition.lang = 'en-US';
@@ -244,70 +231,56 @@
                 console.log("Heard:", transcript);
 
                 if (isAsleep) {
-                    // מצב שינה אדום - מגיב רק למילת התעוררות
                     if (transcript.includes("jarvis wake up") || transcript.includes("wake up")) {
                         wakeUp();
                     } else {
-                        consoleLog.innerHTML = `<span style='color: var(--neon-red);'>[LOCKED] System dormant. Say "Jarvis, wake up" to unlock.</span>`;
+                        consoleLog.innerHTML = `<span style='color: var(--neon-red);'>[LOCKED] Say "Jarvis, wake up" to unlock.</span>`;
                     }
                 } else {
-                    // מצב פעיל כחול - מקשיב לכל פקודה ישירות בלי לחזור על השם
                     if (transcript.includes("go to sleep") || transcript.includes("system sleep")) {
                         goToSleep();
                     } else {
-                        consoleLog.innerHTML = `<span>Command received: "${transcript}"</span>`;
+                        consoleLog.innerHTML = `<span>Command: "${transcript}"</span>`;
                         processLiveCommand(transcript);
                     }
                 }
             };
 
-            // דואג שהמערכת תישאר דלוקה ותקשיב תמיד בלופ
-            recognition.onend = () => { recognition.start(); }; 
+            // מפעיל מחדש רק אם לא עצרנו את המיקרופון בכוונה בשביל לדבר
+            recognition.onend = () => { 
+                if (!explicitStop) {
+                    try { recognition.start(); } catch(e) {}
+                }
+            }; 
             recognition.start();
         }
 
-        // מעבר למצב פעיל (כחול)
         function wakeUp() {
             isAsleep = false;
             document.body.classList.add('active');
             titleH1.innerText = "JARVIS ONLINE";
             statusDiv.innerText = "MODE: ACTIVE / AWAITING INSTRUCTIONS";
-            consoleLog.innerHTML = "<span style='color: var(--neon-cyan);'>[SYSTEM] Systems integrated. Ready for input, sir.</span>";
+            consoleLog.innerHTML = "<span style='color: var(--neon-cyan);'>[SYSTEM] Online and ready, sir.</span>";
             speak("Systems operational. Welcome back, sir.");
         }
 
-        // חזרה למצב שינה (אדום)
         function goToSleep() {
             isAsleep = true;
             document.body.classList.remove('active');
             titleH1.innerText = "SYSTEM DORMANT";
             statusDiv.innerText = "MODE: STANDBY";
             consoleLog.innerHTML = "Say 'Jarvis, wake up' to initialize control...";
-            speak("Understood, entering standby mode.");
+            speak("Understood, entering standby.");
         }
 
-        // עיבוד הפקודות החיות של הדפדפן וה-AI
         function processLiveCommand(command) {
-            // פקודות דפדפן מהירות
-            if (command.includes("open youtube")) {
-                speak("Opening YouTube, sir.");
-                window.open("https://www.youtube.com", "_blank");
-                return;
-            }
-            if (command.includes("open google")) {
-                speak("Opening Google.");
-                window.open("https://www.google.com", "_blank");
-                return;
-            }
-            if (command.includes("open tiktok")) {
-                speak("Opening TikTok.");
-                window.open("https://www.tiktok.com", "_blank");
-                return;
-            }
+            if (command.includes("open youtube")) { window.open("https://www.youtube.com", "_blank"); speak("Opening YouTube."); return; }
+            if (command.includes("open google")) { window.open("https://www.google.com", "_blank"); speak("Opening Google."); return; }
+            if (command.includes("open tiktok")) { window.open("https://www.tiktok.com", "_blank"); speak("Opening TikTok."); return; }
             if (command.includes("search for")) {
                 let query = command.replace("search for", "").trim();
-                speak(`Searching Google for ${query}`);
                 window.open(`https://www.google.com/search?q=${query}`, "_blank");
+                speak(`Searching Google for ${query}`);
                 return;
             }
             if (command.includes("time")) {
@@ -316,55 +289,59 @@
                 return;
             }
 
-            // חיבור ישיר לבינה המלאכותית (Gemini API) במידה ויש מפתח
-            if (geminiKey) {
-                askGeminiAI(command);
-            } else {
-                speak("I heard you, but my AI brain key is missing. Please configuration it below, sir.");
-            }
+            if (geminiKey) { askGeminiAI(command); } else { speak("AI brain key is missing."); }
         }
 
-        // פנייה ישירה ל-AI
         function askGeminiAI(promptText) {
             statusDiv.innerText = "MODE: THINKING...";
-            consoleLog.innerHTML = "[JARVIS] Processing uplink with mainframe...";
+            consoleLog.innerHTML = "[JARVIS] Communicating with neural network...";
 
-            // פקודות מערכת מובנות שמכריחות את ה-AI להתנהג כמו ג'ארוויס
-            const systemPrompt = "You are J.A.R.V.I.S., the highly sophisticated, witty, and loyal AI assistant from Iron Man. Keep your answers concise, cool, advanced, and always address the user as 'sir'. Answer this command: " + promptText;
+            const systemPrompt = "You are J.A.R.V.I.S., the advanced AI from Iron Man. Keep answers short, witty, and always call the user 'sir'. Command: " + promptText;
 
             fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    contents: [{ parts: [{ text: systemPrompt }] }]
-                })
+                body: JSON.stringify({ contents: [{ parts: [{ text: systemPrompt }] }] })
             })
-            .then(res => res.json())
+            .then(res => {
+                if (!res.ok) {
+                    return res.json().then(errData => {
+                        throw new Error(errData.error?.message || "API Error");
+                    });
+                }
+                return res.json();
+            })
             .then(data => {
-                let aiResponse = data.candidates[0].content.parts[0].text;
-                speak(aiResponse);
+                if (data.candidates && data.candidates[0]?.content?.parts[0]?.text) {
+                    speak(data.candidates[0].content.parts[0].text);
+                } else {
+                    throw new Error("Invalid response format");
+                }
             })
             .catch(err => {
                 console.error(err);
-                speak("Forgive me sir, I encountered an error connecting to my core network.");
-                statusDiv.innerText = "MODE: ACTIVE / AWAITING INSTRUCTIONS";
+                // מציג את השגיאה האמיתית על המסך כדי שנדע מה לתקן!
+                consoleLog.innerHTML = `<span style='color: var(--neon-red);'>[AI ERROR] ${err.message}</span>`;
+                speak("Forgive me sir, my core neural network returned an error. Please check the log panel.");
             });
         }
 
-        // מנוע הדיבור של ג'ארוויס
         function speak(text) {
-            recognition.stop(); // עוצר את ההאזנה לרגע כדי שלא ישמע את עצמו מדבר
+            explicitStop = true; // אומר למערכת: "עצרתי את המיקרופון בכוונה, אל תדליקי אותו מיד!"
+            if (recognition) try { recognition.stop(); } catch(e) {}
+            
             statusDiv.innerText = "MODE: RESPONDING";
             consoleLog.innerHTML = `<span style='color: var(--neon-cyan);'>[JARVIS]: ${text}</span>`;
 
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.lang = 'en-US';
-            utterance.rate = 1.05; // מהירות דיבור טבעית ומגניבה
-            utterance.pitch = 0.85; // טון מעט נמוך ורובוטי-יוקרתי
+            utterance.rate = 1.05;
+            utterance.pitch = 0.85;
 
             utterance.onend = () => { 
                 statusDiv.innerText = "MODE: ACTIVE / AWAITING INSTRUCTIONS";
-                recognition.start(); // מחזיר את ההאזנה מיד כשסיים לדבר
+                explicitStop = false; // סיים לדבר, עכשיו אפשר להחזיר את המיקרופון בבטחה
+                if (recognition) try { recognition.start(); } catch(e) {}
             };
             window.speechSynthesis.speak(utterance);
         }
